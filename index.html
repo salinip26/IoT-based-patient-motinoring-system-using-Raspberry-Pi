@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./temp_gauge/style.css">
+</head>
+
+
+<body>
+
+    <h1 style="text-align: center; font-family: Arial, Helvetica, sans-serif;">Health Monitoring System - by Salini Pradhan</h1>
+    <div class="container">
+        <div class="de">
+            <div class="den">
+                <div class="dene">
+                    <div class="denem">
+                        <div class="deneme" id="temp">
+                            0<span>.0</span><strong>&deg;</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="chartContainer" style="height: 370px; width:100%;"></div>
+    <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.4.3/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.4.3/firebase-app.js"></script>
+    <!-- If you enabled Analytics in your project, add the Firebase SDK for Analytics -->
+    <script src="https://www.gstatic.com/firebasejs/8.4.3/firebase-analytics.js"></script>
+    <!-- Add Firebase products that you want to use -->
+    <script src="https://www.gstatic.com/firebasejs/8.4.3/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.4.3/firebase-firestore.js"></script>
+    <script src="./firebase.js"></script>
+
+    <script>
+        var dps = []; // dataPoints
+        var chart = new CanvasJS.Chart("chartContainer", {
+            title: {
+                text: "Pulse Sensor Data"
+            },
+            data: [{
+                type: "line",
+                dataPoints: dps
+            }]
+        });
+
+        var xVal = 0;
+        var yVal = 100;
+        var updateInterval = 1000;
+        var dataLength = 10; 
+
+
+        function updateChart(count, yVal) {
+
+            count = count || 1;
+
+            for (var j = 0; j < count; j++) {
+                yVal = yVal;
+                dps.push({
+                    x: xVal,
+                    y: yVal
+                });
+                xVal++;
+            }
+
+            if (dps.length > dataLength) {
+                dps.shift();
+            }
+
+            chart.render();
+        };
+        updateChart(dataLength, 0);
+    </script>
+    <script>
+        firebase.database().ref('sensor_data/').on('value', (snapshot) => {
+            var temp = snapshot.child('temp').val();
+            var tempVal = temp.toString();
+            document.getElementById("temp").innerHTML = tempVal.split(".")[0] + "<span>." + tempVal.split(".")[1] + "</span><strong>&deg;</strong>";
+            updateChart(1, snapshot.child('pulse').val());
+        });
+    </script>
+</body>
+
+</html>
